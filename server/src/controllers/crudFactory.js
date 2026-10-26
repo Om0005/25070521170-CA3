@@ -17,6 +17,7 @@ const createCrudController = ({
   defaultSort = '-createdAt',
   sanitize = (data) => data,
   beforeCreate = null,
+  afterRemove = null,
 }) => {
   const populateQuery = (query) => (populate ? query.populate(populate) : query);
 
@@ -119,6 +120,8 @@ const createCrudController = ({
   const remove = asyncHandler(async (req, res) => {
     const doc = await model.findByIdAndDelete(req.params.id);
     if (!doc) throw new ApiError(404, `${label} not found`);
+
+    if (afterRemove) await afterRemove(doc, req);
 
     res.json({
       success: true,

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { DEPARTMENTS, STUDENT_STATUS } = require('../utils/constants');
+const { DEPARTMENTS, SEMESTERS, STUDENT_STATUS } = require('../utils/constants');
 
 const studentSchema = new mongoose.Schema(
   {
@@ -30,6 +30,12 @@ const studentSchema = new mongoose.Schema(
       default: '',
       match: [/^$|^[0-9+\-\s]{8,15}$/, 'Enter a valid phone number'],
     },
+    address: {
+      type: String,
+      trim: true,
+      default: '',
+      maxlength: [200, 'Address cannot exceed 200 characters'],
+    },
     department: {
       type: String,
       enum: { values: DEPARTMENTS, message: 'Choose a valid department' },
@@ -40,6 +46,11 @@ const studentSchema = new mongoose.Schema(
       required: [true, 'Year is required'],
       min: [1, 'Year must be between 1 and 4'],
       max: [4, 'Year must be between 1 and 4'],
+    },
+    semester: {
+      type: Number,
+      enum: { values: SEMESTERS, message: 'Choose a valid semester' },
+      default: 1,
     },
     status: {
       type: String,

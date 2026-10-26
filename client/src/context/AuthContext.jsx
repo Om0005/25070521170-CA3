@@ -14,9 +14,13 @@ export function AuthProvider({ children }) {
     setUser(payload.user);
   }, []);
 
+  /**
+   * `portal` is "admin" or "student". The API rejects a mismatch, so the two
+   * sign-in doors stay separate even if a password is valid for the other one.
+   */
   const login = useCallback(
-    async (email, password) => {
-      const { data } = await api.post('/auth/login', { email, password });
+    async (email, password, portal) => {
+      const { data } = await api.post('/auth/login', { email, password, portal });
       persistSession(data);
       return data;
     },
@@ -26,6 +30,15 @@ export function AuthProvider({ children }) {
   const register = useCallback(
     async (payload) => {
       const { data } = await api.post('/auth/register', payload);
+      persistSession(data);
+      return data;
+    },
+    [persistSession]
+  );
+
+  const registerStudent = useCallback(
+    async (payload) => {
+      const { data } = await api.post('/auth/register/student', payload);
       persistSession(data);
       return data;
     },
@@ -43,8 +56,11 @@ export function AuthProvider({ children }) {
     user,
     token,
     isAuthenticated: Boolean(token),
+    isAdmin: user?.role === 'admin',
+    isStudent: user?.role === 'student',
     login,
     register,
+    registerStudent,
     logout,
   };
 

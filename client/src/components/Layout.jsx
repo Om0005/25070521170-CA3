@@ -11,6 +11,7 @@ import {
   IconMenu,
   IconLogout,
   IconBuilding,
+  IconShield,
 } from './icons';
 
 const NAV_MAIN = [{ to: '/', label: 'Dashboard', icon: IconDashboard, end: true }];
@@ -85,7 +86,7 @@ export default function Layout() {
 
         <div className="sidebar__footer">
           <strong>{user?.name || 'Administrator'}</strong>
-          <span>{user?.email || 'admin@college.edu'}</span>
+          <span>{user?.email || 'omkashikar@college.edu'}</span>
         </div>
       </aside>
 
@@ -117,7 +118,12 @@ export default function Layout() {
           <div className="topbar__user">
             <div>
               <div className="topbar__user-name">{user?.name || 'Administrator'}</div>
-              <div className="topbar__user-role">{user?.role || 'admin'}</div>
+              <div className="topbar__user-role">
+                <span className="role-chip role-chip--admin">
+                  <IconShield size={10} />
+                  Administrator
+                </span>
+              </div>
             </div>
             <div className="avatar" aria-hidden="true">
               {initials(user?.name || 'Administrator')}

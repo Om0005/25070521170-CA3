@@ -1,22 +1,33 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getErrorMessage, getFieldErrors } from '../api/client';
-import { IconArrowRight, IconCheck, IconInfo, IconShield } from '../components/icons';
-import FlowSteps from '../components/FlowSteps';
+import AuthShell, { AuthSwitchLink } from '../components/AuthShell';
+import { IconArrowRight, IconInfo } from '../components/icons';
+import { DEPARTMENTS, SEMESTERS, YEARS } from '../data/constants';
 
-export default function Register() {
-  const { register } = useAuth();
+const EMPTY_STUDENT = {
+  name: '',
+  rollNo: '',
+  email: '',
+  phone: '',
+  department: '',
+  year: '',
+  semester: '',
+  password: '',
+  confirmPassword: '',
+};
+
+export default function Register({ mode = 'admin' }) {
+  const isStudent = mode === 'student';
+  const { register, registerStudent } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [form, setForm] = useState(
+    isStudent ? EMPTY_STUDENT : { name: '', email: '', password: '', confirmPassword: '' }
+  );
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +54,16 @@ export default function Register() {
     else if (form.password.length < 6) errors.password = 'Use at least 6 characters';
     if (form.confirmPassword !== form.password) errors.confirmPassword = 'Passwords do not match';
 
+    if (isStudent) {
+      if (!form.rollNo.trim()) errors.rollNo = 'Roll number is required';
+      if (!form.department) errors.department = 'Select your department';
+      if (!form.year) errors.year = 'Select your year';
+      if (!form.semester) errors.semester = 'Select your semester';
+      if (form.phone && !/^[0-9+\-\s]{8,15}$/.test(form.phone.trim())) {
+        errors.phone = 'Use 8–15 digits, spaces, + or -';
+      }
+    }
+
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       return;
@@ -52,14 +73,30 @@ export default function Register() {
     setError('');
 
     try {
-      const result = await register({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        confirmPassword: form.confirmPassword,
-      });
-      toast.success(`Account created for ${result.user.email}.`, 'Welcome');
-      navigate('/', { replace: true });
+      if (isStudent) {
+        const result = await registerStudent({
+          name: form.name.trim(),
+          rollNo: form.rollNo.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          department: form.department,
+          year: Number(form.year),
+          semester: Number(form.semester),
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        });
+        toast.success(`Student account ready for ${result.user.email}.`, 'Welcome to campus');
+        navigate('/student', { replace: true });
+      } else {
+        const result = await register({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        });
+        toast.success(`Administrator account created for ${result.user.email}.`, 'Welcome');
+        navigate('/', { replace: true });
+      }
     } catch (requestError) {
       setFieldErrors(getFieldErrors(requestError));
       setError(getErrorMessage(requestError));
@@ -69,156 +106,234 @@ export default function Register() {
   };
 
   return (
-    <div className="auth">
-      <aside className="auth__aside">
-        <div className="auth__brand">
-          <div className="sidebar__mark" aria-hidden="true">
-            CA
-          </div>
-          <div>
-            <div className="sidebar__title">College Administration Portal</div>
-            <div className="sidebar__subtitle">Academic year 2025–26</div>
-          </div>
+    <AuthShell mode={mode} variant="register">
+      <div className="auth__card-head">
+        <h2 className="auth__title">{isStudent ? 'Create student account' : 'Create admin account'}</h2>
+        <p className="auth__sub">
+          {isStudent
+            ? 'Your admission record and login are created together — no approval needed.'
+            : 'Register a new administrator for the portal.'}
+        </p>
+      </div>
+
+      {error ? (
+        <div className="alert alert--error" role="alert" style={{ marginBottom: 16 }}>
+          <IconInfo size={16} />
+          <span>{error}</span>
         </div>
+      ) : null}
 
-        <div>
-          <h1 className="auth__headline">
-            Set up your <span>administrator</span> account.
-          </h1>
-          <p className="auth__lede">
-            This account manages student admissions, the course catalogue, faculty records and
-            notices published to the campus.
-          </p>
-
-          <ul className="auth__features">
-            <li>
-              <IconShield />
-              <span>Passwords are hashed before they are stored — never saved as plain text.</span>
-            </li>
-            <li>
-              <IconCheck />
-              <span>Your session is validated with a signed token on every request.</span>
-            </li>
-          </ul>
-
-          <div className="auth__flow">
-            <div className="auth__flow-label">Onboarding flow</div>
-            <FlowSteps
-              compact
-              label="Onboarding flow"
-              steps={[
-                { label: 'Register', hint: 'Hash + store' },
-                { label: 'Auto sign-in', hint: 'Token returned' },
-                { label: 'Dashboard', hint: 'Start managing' },
-              ]}
+      <form className="auth__form" onSubmit={handleSubmit} noValidate>
+        <div className={isStudent ? 'auth__grid' : ''}>
+          <div className={`field${isStudent ? ' field--full' : ''}`}>
+            <label className="field__label" htmlFor="register-name">
+              Full name
+            </label>
+            <input
+              id="register-name"
+              name="name"
+              type="text"
+              className={`input${fieldErrors.name ? ' is-invalid' : ''}`}
+              placeholder={isStudent ? 'Aarav Mehta' : 'Om Kashikar'}
+              autoComplete="name"
+              value={form.name}
+              onChange={handleChange}
             />
-          </div>
-        </div>
-
-        <p className="auth__foot">Full Stack Web Development · CA3 · College Administration Portal</p>
-      </aside>
-
-      <section className="auth__panel">
-        <div className="auth__card">
-          <div className="auth__card-head">
-            <h2 className="auth__title">Create account</h2>
-            <p className="auth__sub">Register a new administrator for the portal.</p>
+            {fieldErrors.name ? <span className="field__error">{fieldErrors.name}</span> : null}
           </div>
 
-          {error ? (
-            <div className="alert alert--error" role="alert" style={{ marginBottom: 16 }}>
-              <IconInfo size={16} />
-              <span>{error}</span>
+          {isStudent ? (
+            <div className="field">
+              <label className="field__label" htmlFor="register-roll">
+                Roll number
+              </label>
+              <input
+                id="register-roll"
+                name="rollNo"
+                type="text"
+                className={`input mono${fieldErrors.rollNo ? ' is-invalid' : ''}`}
+                placeholder="25070521013"
+                autoComplete="off"
+                value={form.rollNo}
+                onChange={handleChange}
+              />
+              {fieldErrors.rollNo ? <span className="field__error">{fieldErrors.rollNo}</span> : null}
             </div>
           ) : null}
 
-          <form className="auth__form" onSubmit={handleSubmit} noValidate>
+          {isStudent ? (
             <div className="field">
-              <label className="field__label" htmlFor="register-name">
-                Full name
+              <label className="field__label" htmlFor="register-phone">
+                Phone <span style={{ color: 'var(--muted-light)', fontWeight: 500 }}>(optional)</span>
               </label>
               <input
-                id="register-name"
-                name="name"
-                type="text"
-                className={`input${fieldErrors.name ? ' is-invalid' : ''}`}
-                placeholder="Dr. Anjali Deshmukh"
-                autoComplete="name"
-                value={form.name}
+                id="register-phone"
+                name="phone"
+                type="tel"
+                className={`input${fieldErrors.phone ? ' is-invalid' : ''}`}
+                placeholder="9822011201"
+                autoComplete="tel"
+                value={form.phone}
                 onChange={handleChange}
               />
-              {fieldErrors.name ? <span className="field__error">{fieldErrors.name}</span> : null}
+              {fieldErrors.phone ? <span className="field__error">{fieldErrors.phone}</span> : null}
             </div>
+          ) : null}
 
-            <div className="field">
-              <label className="field__label" htmlFor="register-email">
-                Email address
-              </label>
-              <input
-                id="register-email"
-                name="email"
-                type="email"
-                className={`input${fieldErrors.email ? ' is-invalid' : ''}`}
-                placeholder="you@college.edu"
-                autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-              />
-              {fieldErrors.email ? <span className="field__error">{fieldErrors.email}</span> : null}
-            </div>
+          <div className={`field${isStudent ? ' field--full' : ''}`}>
+            <label className="field__label" htmlFor="register-email">
+              Email address
+            </label>
+            <input
+              id="register-email"
+              name="email"
+              type="email"
+              className={`input${fieldErrors.email ? ' is-invalid' : ''}`}
+              placeholder={isStudent ? 'you@student.edu' : 'you@college.edu'}
+              autoComplete="email"
+              value={form.email}
+              onChange={handleChange}
+            />
+            {fieldErrors.email ? <span className="field__error">{fieldErrors.email}</span> : null}
+          </div>
 
-            <div className="field">
-              <label className="field__label" htmlFor="register-password">
-                Password
+          {isStudent ? (
+            <div className="field field--full">
+              <label className="field__label" htmlFor="register-department">
+                Department
               </label>
-              <input
-                id="register-password"
-                name="password"
-                type="password"
-                className={`input${fieldErrors.password ? ' is-invalid' : ''}`}
-                placeholder="At least 6 characters"
-                autoComplete="new-password"
-                value={form.password}
+              <select
+                id="register-department"
+                name="department"
+                className={`select${fieldErrors.department ? ' is-invalid' : ''}`}
+                value={form.department}
                 onChange={handleChange}
-              />
-              {fieldErrors.password ? (
-                <span className="field__error">{fieldErrors.password}</span>
-              ) : (
-                <span className="field__hint">Minimum 6 characters. Use a mix of letters and numbers.</span>
-              )}
-            </div>
-
-            <div className="field">
-              <label className="field__label" htmlFor="register-confirm">
-                Confirm password
-              </label>
-              <input
-                id="register-confirm"
-                name="confirmPassword"
-                type="password"
-                className={`input${fieldErrors.confirmPassword ? ' is-invalid' : ''}`}
-                placeholder="Re-enter your password"
-                autoComplete="new-password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-              />
-              {fieldErrors.confirmPassword ? (
-                <span className="field__error">{fieldErrors.confirmPassword}</span>
+              >
+                <option value="">Select department</option>
+                {DEPARTMENTS.map((department) => (
+                  <option key={department} value={department}>
+                    {department}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.department ? (
+                <span className="field__error">{fieldErrors.department}</span>
               ) : null}
             </div>
+          ) : null}
 
-            <button type="submit" className="btn btn--primary btn--block" disabled={loading}>
-              {loading ? <span className="spinner" /> : null}
-              {loading ? 'Creating account…' : 'Create account'}
-              {!loading ? <IconArrowRight size={16} /> : null}
-            </button>
-          </form>
+          {isStudent ? (
+            <div className="field">
+              <label className="field__label" htmlFor="register-year">
+                Year of study
+              </label>
+              <select
+                id="register-year"
+                name="year"
+                className={`select${fieldErrors.year ? ' is-invalid' : ''}`}
+                value={form.year}
+                onChange={handleChange}
+              >
+                <option value="">Select year</option>
+                {YEARS.map((year) => (
+                  <option key={year} value={year}>
+                    Year {year}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.year ? <span className="field__error">{fieldErrors.year}</span> : null}
+            </div>
+          ) : null}
 
-          <p className="auth__switch">
-            Already registered? <Link to="/login">Sign in instead</Link>
-          </p>
+          {isStudent ? (
+            <div className="field">
+              <label className="field__label" htmlFor="register-semester">
+                Semester
+              </label>
+              <select
+                id="register-semester"
+                name="semester"
+                className={`select${fieldErrors.semester ? ' is-invalid' : ''}`}
+                value={form.semester}
+                onChange={handleChange}
+              >
+                <option value="">Select semester</option>
+                {SEMESTERS.map((semester) => (
+                  <option key={semester} value={semester}>
+                    Semester {semester}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.semester ? (
+                <span className="field__error">{fieldErrors.semester}</span>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className={`field${isStudent ? '' : ' field--full'}`}>
+            <label className="field__label" htmlFor="register-password">
+              Password
+            </label>
+            <input
+              id="register-password"
+              name="password"
+              type="password"
+              className={`input${fieldErrors.password ? ' is-invalid' : ''}`}
+              placeholder="At least 6 characters"
+              autoComplete="new-password"
+              value={form.password}
+              onChange={handleChange}
+            />
+            {fieldErrors.password ? (
+              <span className="field__error">{fieldErrors.password}</span>
+            ) : (
+              <span className="field__hint">Minimum 6 characters. Mix letters and numbers.</span>
+            )}
+          </div>
+
+          <div className={`field${isStudent ? '' : ' field--full'}`}>
+            <label className="field__label" htmlFor="register-confirm">
+              Confirm password
+            </label>
+            <input
+              id="register-confirm"
+              name="confirmPassword"
+              type="password"
+              className={`input${fieldErrors.confirmPassword ? ' is-invalid' : ''}`}
+              placeholder="Re-enter your password"
+              autoComplete="new-password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
+            {fieldErrors.confirmPassword ? (
+              <span className="field__error">{fieldErrors.confirmPassword}</span>
+            ) : null}
+          </div>
         </div>
-      </section>
-    </div>
+
+        <button
+          type="submit"
+          className={`btn btn--primary btn--block${isStudent ? ' btn--student' : ''}`}
+          disabled={loading}
+        >
+          {loading ? <span className="spinner" /> : null}
+          {loading
+            ? 'Creating account…'
+            : isStudent
+              ? 'Create student account'
+              : 'Create administrator account'}
+          {!loading ? <IconArrowRight size={16} /> : null}
+        </button>
+      </form>
+
+      {isStudent ? (
+        <p className="auth__hintline">
+          Already admitted? Create your login with the roll number from your admission letter. Your
+          record appears instantly on the admin portal.
+        </p>
+      ) : null}
+
+      <AuthSwitchLink mode={mode} variant="register" />
+    </AuthShell>
   );
 }

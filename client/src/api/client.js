@@ -44,12 +44,18 @@ api.interceptors.response.use(
     const url = error.config?.url || '';
     const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/register');
 
-    // Expired / invalid session -> clear it and send the user back to login.
+    // Expired / invalid session -> clear it and send the user back to the
+    // sign-in screen for the portal they were using.
     if (status === 401 && !isAuthAttempt) {
+      const role = userStore.get()?.role;
+      const isStudentArea =
+        role === 'student' || window.location.pathname.startsWith('/student');
+      const loginPath = isStudentArea ? '/student/login' : '/login';
+
       tokenStore.clear();
       userStore.clear();
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.assign('/login?expired=1');
+      if (!window.location.pathname.endsWith('/login')) {
+        window.location.assign(`${loginPath}?expired=1`);
       }
     }
 

@@ -24,3 +24,17 @@ export const resourceApi = {
 export const dashboardApi = {
   get: () => api.get('/dashboard').then((res) => res.data),
 };
+
+/** Read/write endpoints for the signed-in student's own portal. */
+export const studentApi = {
+  dashboard: () => api.get('/student/dashboard').then((res) => res.data),
+  courses: () => api.get('/student/courses').then((res) => res.data),
+  notices: (params = {}) => api.get('/student/notices', { params }).then((res) => res.data),
+  profile: () => api.get('/student/profile').then((res) => res.data),
+  updateProfile: (payload) => api.put('/student/profile', payload).then((res) => res.data),
+};
+
+export const authApi = {
+  me: () => api.get('/auth/me').then((res) => res.data),
+  changePassword: (payload) => api.put('/auth/password', payload).then((res) => res.data),
+};

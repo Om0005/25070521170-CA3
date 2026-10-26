@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       enum: ROLES,
       default: 'admin',
     },
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Student',
+      default: null,
+    },
     lastLoginAt: {
       type: Date,
       default: null,
@@ -59,6 +64,7 @@ userSchema.methods.toPublicJSON = function toPublicJSON() {
     name: this.name,
     email: this.email,
     role: this.role,
+    student: this.student,
     lastLoginAt: this.lastLoginAt,
     createdAt: this.createdAt,
   };

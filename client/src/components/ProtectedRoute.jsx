@@ -1,21 +1,29 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-/** Blocks the admin area until a token exists. */
-export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+/** Where a signed-in account belongs. */
+export const homeFor = (role) => (role === 'student' ? '/student' : '/');
+
+/** Blocks a portal until a token for the right role exists. */
+export default function ProtectedRoute({ children, role }) {
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    const loginPath = role === 'student' ? '/student/login' : '/login';
+    return <Navigate to={loginPath} replace state={{ from: location.pathname }} />;
+  }
+
+  if (role && user?.role !== role) {
+    return <Navigate to={homeFor(user?.role)} replace />;
   }
 
   return children;
 }
 
-/** Keeps logged-in users away from the login / register screens. */
+/** Keeps signed-in users away from the login / register screens. */
 export function PublicOnlyRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  const { isAuthenticated, user } = useAuth();
+  if (isAuthenticated) return <Navigate to={homeFor(user?.role)} replace />;
   return children;
 }

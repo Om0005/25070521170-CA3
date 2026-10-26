@@ -30,7 +30,7 @@ const AUDIENCES = ['all', 'students', 'faculty'];
 
 const PRIORITIES = ['low', 'normal', 'high'];
 
-const ROLES = ['admin', 'staff'];
+const ROLES = ['admin', 'student'];
 
 module.exports = {
   DEPARTMENTS,

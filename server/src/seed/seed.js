@@ -16,10 +16,18 @@ const Faculty = require('../models/Faculty');
 const Notice = require('../models/Notice');
 
 const ADMIN = {
-  name: 'Dr. Anjali Deshmukh',
-  email: 'admin@college.edu',
+  name: 'Om Kashikar',
+  email: 'omkashikar@college.edu',
   password: 'Admin@123',
   role: 'admin',
+};
+
+const LEGACY_ADMIN_EMAIL = 'admin@college.edu';
+
+const STUDENT_DEMO = {
+  email: 'aarav.mehta@student.edu',
+  password: 'Student@123',
+  rollNo: '25070521001',
 };
 
 const FACULTY = [
@@ -136,15 +144,27 @@ const run = async () => {
       Course.deleteMany({}),
       Faculty.deleteMany({}),
       Notice.deleteMany({}),
+      User.deleteMany({ role: 'student' }),
     ]);
-    console.log('Cleared students, courses, faculty and notices.');
+    console.log('Cleared students, courses, faculty, notices and student logins.');
   }
 
   /* ---------------------------- admin ---------------------------- */
   let admin = await User.findOne({ email: ADMIN.email });
   if (!admin) {
-    admin = await User.create(ADMIN);
-    console.log(`Admin created -> ${ADMIN.email} / ${ADMIN.password}`);
+    // Migrate the original demo admin account instead of leaving two of them.
+    const legacyAdmin = await User.findOne({ email: LEGACY_ADMIN_EMAIL });
+    if (legacyAdmin) {
+      legacyAdmin.name = ADMIN.name;
+      legacyAdmin.email = ADMIN.email;
+      legacyAdmin.role = 'admin';
+      await legacyAdmin.save();
+      admin = legacyAdmin;
+      console.log(`Admin migrated -> ${ADMIN.email}`);
+    } else {
+      admin = await User.create(ADMIN);
+      console.log(`Admin created -> ${ADMIN.email} / ${ADMIN.password}`);
+    }
   } else {
     console.log(`Admin already exists -> ${ADMIN.email}`);
   }
@@ -260,8 +280,10 @@ const run = async () => {
       name,
       email,
       phone: '',
+      address: '',
       department,
       year,
+      semester: year * 2 - 1,
       status,
     }));
 
@@ -269,6 +291,44 @@ const run = async () => {
     console.log(`Inserted ${inserted.length} students.`);
   } else {
     console.log(`Students already present (${studentCount}), skipping.`);
+  }
+
+  // Backfill the semester added for the student portal.
+  const needsSemester = await Student.find({ semester: { $exists: false } }).select('_id year');
+  if (needsSemester.length) {
+    await Promise.all(
+      needsSemester.map((doc) =>
+        Student.updateOne(
+          { _id: doc._id },
+          { $set: { semester: Math.min(8, Math.max(1, (doc.year || 1) * 2 - 1)) } }
+        )
+      )
+    );
+    console.log(`Backfilled semester on ${needsSemester.length} students.`);
+  }
+
+  /* ----------------------- demo student login -------------------- */
+  const demoStudent = await Student.findOne({ rollNo: STUDENT_DEMO.rollNo });
+  if (demoStudent) {
+    let demoUser = await User.findOne({ email: STUDENT_DEMO.email });
+
+    if (!demoUser) {
+      demoUser = await User.create({
+        name: demoStudent.name,
+        email: STUDENT_DEMO.email,
+        password: STUDENT_DEMO.password,
+        role: 'student',
+        student: demoStudent._id,
+      });
+      console.log(`Student login created -> ${STUDENT_DEMO.email} / ${STUDENT_DEMO.password}`);
+    } else if (!demoUser.student) {
+      demoUser.student = demoStudent._id;
+      demoUser.role = 'student';
+      await demoUser.save({ validateBeforeSave: false });
+      console.log(`Student login linked -> ${STUDENT_DEMO.email}`);
+    }
+  } else {
+    console.log('Demo student record not found, skipping student login.');
   }
 
   /* --------------------------- notices --------------------------- */

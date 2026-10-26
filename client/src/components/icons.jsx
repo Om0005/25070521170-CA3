@@ -197,3 +197,45 @@ export const IconSparkles = (props) => (
     <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M17.7 6.3l-2.8 2.8M9.1 14.9l-2.8 2.8" />
   </Svg>
 );
+
+export const IconIdCard = (props) => (
+  <Svg {...props}>
+    <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+    <circle cx="8.5" cy="11" r="2" />
+    <path d="M5.5 16.2a3.4 3.4 0 0 1 6 0M14 10h4.5M14 14h4.5" />
+  </Svg>
+);
+
+export const IconCalendar = (props) => (
+  <Svg {...props}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M8 3v4M16 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
+  </Svg>
+);
+
+export const IconPhone = (props) => (
+  <Svg {...props}>
+    <path d="M15.5 21A14.5 14.5 0 0 1 3 8.5 3 3 0 0 1 6 5.5h1.5a1.5 1.5 0 0 1 1.5 1.3c.1.9.3 1.7.5 2.4a1.5 1.5 0 0 1-.5 1.7L8 12a12 12 0 0 0 4 4l1.1-1a1.5 1.5 0 0 1 1.7-.5c.8.3 1.6.4 2.4.5a1.5 1.5 0 0 1 1.3 1.5V18a3 3 0 0 1-3 3Z" />
+  </Svg>
+);
+
+export const IconMapPin = (props) => (
+  <Svg {...props}>
+    <path d="M20 10c0 5.5-8 12-8 12s-8-6.5-8-12a8 8 0 0 1 16 0Z" />
+    <circle cx="12" cy="10" r="3" />
+  </Svg>
+);
+
+export const IconKey = (props) => (
+  <Svg {...props}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="m11 12 9-9M17 3l3 3M14 6l3 3" />
+  </Svg>
+);
+
+export const IconCheckCircle = (props) => (
+  <Svg {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </Svg>
+);

@@ -1,11 +1,12 @@
 const express = require('express');
 const auth = require('./authRoutes');
+const studentPortal = require('./studentRoutes');
 const student = require('../controllers/studentController');
 const course = require('../controllers/courseController');
 const faculty = require('../controllers/facultyController');
 const notice = require('../controllers/noticeController');
 const { getDashboard } = require('../controllers/dashboardController');
-const { protect } = require('../middleware/auth');
+const { protect, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -23,15 +24,29 @@ router.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'College Administration Portal API',
-    version: '1.0.0',
-    endpoints: ['/api/auth', '/api/dashboard', '/api/students', '/api/courses', '/api/faculty', '/api/notices'],
+    version: '2.0.0',
+    endpoints: [
+      '/api/auth',
+      '/api/auth/register/student',
+      '/api/student',
+      '/api/dashboard',
+      '/api/students',
+      '/api/courses',
+      '/api/faculty',
+      '/api/notices',
+    ],
   });
 });
 
 router.use('/auth', auth);
 
-// Everything below requires a valid JWT.
-router.use(protect);
+// The student portal router applies its own auth + role guard.
+router.use('/student', studentPortal);
+
+// ---------------------------------------------------------------------------
+// Everything below belongs to the administrator portal.
+// ---------------------------------------------------------------------------
+router.use(protect, requireRole('admin'));
 
 router.get('/dashboard', getDashboard);
 resourceRoutes('/students', student);
