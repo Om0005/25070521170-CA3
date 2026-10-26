@@ -1995,6 +1995,26 @@ button.badge:hover:not(:disabled) {
   .auth__card { padding: 28px 24px 24px; }
 }
 
+/* shorter laptop windows: keep the marketing column from clipping */
+@media (min-width: 981px) and (max-height: 790px) {
+  .auth__aside { padding: 30px 44px; gap: 18px; }
+  .auth__headline { font-size: clamp(24px, 2.2vw, 32px); margin-top: 20px; }
+  .auth__lede { font-size: 13px; margin-top: 10px; }
+  .auth__features { margin-top: 18px; gap: 9px; }
+  .auth__features li { font-size: 12.5px; }
+  .auth__flow { margin-top: 16px; padding-top: 14px; }
+  .auth__panel { padding: 30px 24px; }
+}
+
+@media (min-width: 981px) and (max-height: 660px) {
+  .auth__features { display: none; }
+  .auth__headline { font-size: 26px; }
+}
+
+@media (max-height: 720px) {
+  .auth__panel { align-items: flex-start; }
+}
+
 /* =========================================================
    Dashboard widgets
    ========================================================= */
