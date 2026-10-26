@@ -5,6 +5,8 @@ import { getErrorMessage } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatDate, greeting, initials, timeAgo } from '../data/helpers';
 import { StatusBadge } from '../components/Badge';
+import CountUp from '../components/CountUp';
+import FlowSteps from '../components/FlowSteps';
 import {
   IconStudents,
   IconCourses,
@@ -21,6 +23,13 @@ const STAT_CARDS = [
   { key: 'courses', label: 'Running courses', icon: IconCourses, tone: 'stat-card--sky', to: '/courses', hint: 'Across all departments' },
   { key: 'faculty', label: 'Faculty on roll', icon: IconFaculty, tone: 'stat-card--green', to: '/faculty', hint: 'Active teaching staff' },
   { key: 'notices', label: 'Published notices', icon: IconNotice, tone: 'stat-card--amber', to: '/notices', hint: 'Visible on the board' },
+];
+
+const WORKFLOW = [
+  { label: 'Admit students', hint: 'Roll number, department, year', to: '/students' },
+  { label: 'Create courses', hint: 'Credits, semester, seats', to: '/courses' },
+  { label: 'Assign faculty', hint: 'Map teachers to subjects', to: '/faculty' },
+  { label: 'Publish notices', hint: 'Reach students & staff', to: '/notices' },
 ];
 
 export default function Dashboard() {
@@ -80,6 +89,19 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <section className="flow-card">
+        <div className="flow-card__head">
+          <h2 className="flow-card__title">
+            <span className="dot" aria-hidden="true" />
+            Administration workflow
+          </h2>
+          <p className="flow-card__hint">
+            Every step writes straight to MongoDB — pick any step to jump in.
+          </p>
+        </div>
+        <FlowSteps steps={WORKFLOW} />
+      </section>
+
       {error ? (
         <div className="card" style={{ padding: 18, marginBottom: 18 }}>
           <div className="alert alert--error" role="alert">
@@ -105,7 +127,9 @@ export default function Dashboard() {
             {loading ? (
               <span className="skeleton" style={{ width: 64, height: 30, marginTop: 12 }} />
             ) : (
-              <div className="stat-card__value">{data?.stats?.[key] ?? 0}</div>
+              <div className="stat-card__value">
+                <CountUp value={data?.stats?.[key] ?? 0} />
+              </div>
             )}
 
             <div className="stat-card__hint">

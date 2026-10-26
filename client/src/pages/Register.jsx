@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getErrorMessage, getFieldErrors } from '../api/client';
 import { IconArrowRight, IconCheck, IconInfo, IconShield } from '../components/icons';
+import FlowSteps from '../components/FlowSteps';
 
 export default function Register() {
   const { register } = useAuth();
@@ -99,6 +100,19 @@ export default function Register() {
               <span>Your session is validated with a signed token on every request.</span>
             </li>
           </ul>
+
+          <div className="auth__flow">
+            <div className="auth__flow-label">Onboarding flow</div>
+            <FlowSteps
+              compact
+              label="Onboarding flow"
+              steps={[
+                { label: 'Register', hint: 'Hash + store' },
+                { label: 'Auto sign-in', hint: 'Token returned' },
+                { label: 'Dashboard', hint: 'Start managing' },
+              ]}
+            />
+          </div>
         </div>
 
         <p className="auth__foot">Full Stack Web Development · CA3 · College Administration Portal</p>

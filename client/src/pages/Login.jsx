@@ -10,6 +10,7 @@ import {
   IconCourses,
   IconShield,
 } from '../components/icons';
+import FlowSteps from '../components/FlowSteps';
 
 export default function Login() {
   const { login } = useAuth();
@@ -88,6 +89,19 @@ export default function Login() {
               <span>Protected administration area backed by token authentication.</span>
             </li>
           </ul>
+
+          <div className="auth__flow">
+            <div className="auth__flow-label">Sign-in flow</div>
+            <FlowSteps
+              compact
+              label="Sign-in flow"
+              steps={[
+                { label: 'Sign in', hint: 'JWT issued' },
+                { label: 'Dashboard', hint: 'Live campus stats' },
+                { label: 'Manage', hint: 'CRUD → MongoDB' },
+              ]}
+            />
+          </div>
         </div>
 
         <p className="auth__foot">Full Stack Web Development · CA3 · College Administration Portal</p>

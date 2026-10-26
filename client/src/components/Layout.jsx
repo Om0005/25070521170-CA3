@@ -109,6 +109,11 @@ export default function Layout() {
 
           <div className="topbar__spacer" />
 
+          <span className="sync-chip" title="Data is served live from MongoDB">
+            <span className="sync-chip__dot" aria-hidden="true" />
+            Live · MongoDB
+          </span>
+
           <div className="topbar__user">
             <div>
               <div className="topbar__user-name">{user?.name || 'Administrator'}</div>
@@ -125,7 +130,9 @@ export default function Layout() {
         </header>
 
         <main className="page">
-          <Outlet />
+          <div className="page-anim" key={location.pathname}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
