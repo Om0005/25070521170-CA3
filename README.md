@@ -46,6 +46,7 @@ A full-stack college administration portal built with **React (Vite)** on the cl
 │   │   ├── middleware/         # JWT guard, error handler
 │   │   ├── models/             # User, Student, Course, Faculty, Notice
 │   │   ├── routes/             # /api routes
+│   │   ├── scripts/dbCheck.js  # connection + collection report
 │   │   ├── seed/seed.js        # demo data
 │   │   ├── utils/              # constants, helpers, token
 │   │   └── index.js            # app entry point
@@ -267,6 +268,25 @@ Seeded data:
 | Faculty    | 6 |
 | Courses    | 8 (7 with assigned faculty) |
 | Notices    | 4 (3 published, 1 draft) |
+
+### Verifying the database connection
+
+```bash
+cd server
+npm run db:check
+```
+
+Prints the live connection details and a document count for every collection —
+useful for proving the API is reading from MongoDB rather than mock data.
+
+### Viewing the data in MongoDB Compass
+
+1. Open **MongoDB Compass**.
+2. Connect with the string `mongodb://127.0.0.1:27017`.
+3. Select the **`college_admin`** database → `students`, `courses`, `faculties`, `notices`, `users`.
+
+Any record you add, edit or delete in the portal appears there immediately.
+
 
 ---
 
