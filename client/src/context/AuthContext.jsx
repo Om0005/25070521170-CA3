@@ -1,74 +1,78 @@
-import { createContext, useCallback, useContext, useState } from 'react';
-import api, { tokenStore, userStore } from '../api/client';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser, registerUser } from '../api/api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => userStore.get());
-  const [token, setToken] = useState(() => tokenStore.get());
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('pulsebeat_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('pulsebeat_token') || '');
+  const [loading, setLoading] = useState(false);
 
-  const persistSession = useCallback((payload) => {
-    tokenStore.set(payload.token);
-    userStore.set(payload.user);
-    setToken(payload.token);
-    setUser(payload.user);
-  }, []);
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('pulsebeat_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('pulsebeat_user');
+    }
+  }, [user]);
 
-  /**
-   * `portal` is "admin" or "student". The API rejects a mismatch, so the two
-   * sign-in doors stay separate even if a password is valid for the other one.
-   */
-  const login = useCallback(
-    async (email, password, portal) => {
-      const { data } = await api.post('/auth/login', { email, password, portal });
-      persistSession(data);
-      return data;
-    },
-    [persistSession]
-  );
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('pulsebeat_token', token);
+    } else {
+      localStorage.removeItem('pulsebeat_token');
+    }
+  }, [token]);
 
-  const register = useCallback(
-    async (payload) => {
-      const { data } = await api.post('/auth/register', payload);
-      persistSession(data);
-      return data;
-    },
-    [persistSession]
-  );
-
-  const registerStudent = useCallback(
-    async (payload) => {
-      const { data } = await api.post('/auth/register/student', payload);
-      persistSession(data);
-      return data;
-    },
-    [persistSession]
-  );
-
-  const logout = useCallback(() => {
-    tokenStore.clear();
-    userStore.clear();
-    setToken(null);
-    setUser(null);
-  }, []);
-
-  const value = {
-    user,
-    token,
-    isAuthenticated: Boolean(token),
-    isAdmin: user?.role === 'admin',
-    isStudent: user?.role === 'student',
-    login,
-    register,
-    registerStudent,
-    logout,
+  const login = async (email, password) => {
+    setLoading(true);
+    try {
+      const res = await loginUser(email, password);
+      setUser(res.user);
+      setToken(res.token);
+      return { success: true, user: res.user };
+    } catch (err) {
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const register = async (name, email, password, prn) => {
+    setLoading(true);
+    try {
+      const res = await registerUser(name, email, password, prn);
+      setUser(res.user);
+      setToken(res.token);
+      return { success: true, user: res.user };
+    } catch (err) {
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken('');
+    localStorage.removeItem('pulsebeat_user');
+    localStorage.removeItem('pulsebeat_token');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 }
