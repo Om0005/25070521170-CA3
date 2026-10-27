@@ -8,7 +8,11 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node src/seed/seed.js",
+    "seed:fresh": "node src/seed/seed.js --fresh",
     "db:check": "node src/scripts/dbCheck.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "express",

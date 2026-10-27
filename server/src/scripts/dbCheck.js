@@ -6,7 +6,7 @@
  * Handy during a demo/viva to prove the API is reading from a real database
  * and not from memory or mock data.
  */
-require('dotenv').config();
+require('../config/env');
 
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');

@@ -6,8 +6,12 @@
   "description": "React frontend for the College Administration Portal (CA3 - Full Stack Web Development)",
   "scripts": {
     "dev": "vite",
+    "dev:host": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "axios": "^1.7.4",
