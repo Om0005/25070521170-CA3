@@ -1,80 +1,200 @@
-# PulseBeat Backend Server (Node.js, Express, MongoDB Atlas)
+# College Administration Portal — Backend (Node + Express + MongoDB)
 
-Continuous Assessment 3 (CA-03) Full Stack Web Development Server.  
-**Student PRN**: `25070521060`
+REST API for the CA3 Full Stack Web Development project.
+**PRN: 25070521170**
+
+This is the `server/` half of the project. The React frontend lives in the
+sibling [`../client`](../client) folder.
 
 ---
 
-## 🚀 Quick Start
+## Quick start (fresh clone — 4 commands)
 
-### 1. Install Dependencies
+Requirements: **Node.js 18+** and **MongoDB** running locally
+(or a free MongoDB Atlas cluster).
+
 ```bash
-cd backend
+# Terminal 1 — backend
+cd server
 npm install
+npm start
 ```
 
-### 2. Configure MongoDB Atlas
-Open [.env](file:///Users/ritikmahakalkar/learning/project/Harsh/backend/.env) and replace `MONGO_URI` with your MongoDB Atlas connection string:
+Then open a second terminal for the frontend:
 
-```env
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/ca03_music_db?retryWrites=true&w=majority
-PORT=5000
-JWT_SECRET=ca03_jwt_secret_key_ritik_prn_25070521060
+```bash
+# Terminal 2 — frontend
+cd client
+npm install
+npm run dev
 ```
 
-> **Tip**: If you are using local MongoDB Compass without Atlas, the server automatically connects to `mongodb://127.0.0.1:27017/ca03_music_db`. If neither is currently connected, the server gracefully activates its in-memory fallback so your project never crashes during evaluation!
+Open **http://localhost:5173**
 
-### 3. Run the Server
-* **Development mode (auto-reload with nodemon)**:
-  ```bash
-  npm run dev
-  ```
-* **Production mode**:
-  ```bash
-  npm start
-  ```
+There is **nothing else to configure**. On the first start the API:
 
-Server will run at `http://localhost:5000`.
+1. connects to `mongodb://127.0.0.1:27017/college_admin`,
+2. detects that the database is empty and seeds demo data automatically,
+3. prints the demo login credentials in the terminal.
+
+A `.env` file is optional — built-in local defaults are used when it is
+missing. Copy `.env.example` to `.env` only if you want to point the API at a
+different database or port.
 
 ---
 
-## 📡 REST API Endpoints
+## Demo logins
 
-### 🩺 System Health Check
-* `GET /api/health` - Check backend server and MongoDB connection status.
+| Portal | Login ID | Password |
+| --- | --- | --- |
+| Administrator | `omkashikar@college.edu` | `Admin@123` |
+| Student | `aarav.mehta@student.edu` | `Student@123` |
 
-### 🔐 Authentication (`/api/auth`)
-* `POST /api/auth/register` - Register a new student/user with name, email, password, and PRN.
-* `POST /api/auth/login` - Authenticate with email and password, receives JWT token.
-* `GET /api/auth/me` - Get current user profile (Requires `Authorization: Bearer <token>`).
-
-### 🎵 Audio Tracks CRUD (`/api/tracks`)
-* `GET /api/tracks` - List all tracks (Supports `?genre=Synthwave` and `?search=keyword` queries).
-* `GET /api/tracks/:id` - Fetch single track details.
-* `POST /api/tracks` - Create a new track (Sends JSON body with `title`, `artist`, `album`, `genre`, `duration`, `coverUrl`, `audioUrl`).
-* `PUT /api/tracks/:id` - Update track metadata.
-* `DELETE /api/tracks/:id` - Remove track by ID.
+Students can also create their own account from the student portal
+(`/student/register`); new accounts are stored in MongoDB and can sign in
+immediately.
 
 ---
 
-## 📁 Project Architecture
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm start` | Runs the API on port 5000 |
+| `npm run dev` | Same, with nodemon auto-restart |
+| `npm run seed` | Inserts demo data if collections are empty (safe to repeat) |
+| `npm run seed:fresh` | Wipes students/courses/faculty/notices, then re-seeds |
+| `npm run db:check` | Prints the live MongoDB connection and document counts |
+
+---
+
+## Environment variables
+
+All optional. Defaults shown below.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `5000` | Port the API listens on |
+| `MONGO_URI` | `mongodb://127.0.0.1:27017/college_admin` | MongoDB connection string (local or Atlas) |
+| `JWT_SECRET` | built-in dev value | Secret used to sign auth tokens — set a private value in production |
+| `JWT_EXPIRES_IN` | `7d` | Token lifetime |
+| `CLIENT_URL` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed CORS origins (comma separated) |
+| `NODE_ENV` | `development` | `production` enables stricter checks |
+
+To customise: `copy .env.example .env` (Windows) or `cp .env.example .env`
+(macOS/Linux), then edit the values. `.env` is git-ignored on purpose.
+
+**Using MongoDB Atlas instead of a local install:** put your cluster string in
+`server/.env` and nothing else changes:
+
 ```
-backend/
-├── config/
-│   └── db.js                 # MongoDB Atlas & local connection logic
-├── controllers/
-│   ├── authController.js     # User registration, login, JWT issuance
-│   └── trackController.js    # Full CRUD controllers & auto-seeding
-├── middleware/
-│   └── authMiddleware.js     # JWT verification middleware
-├── models/
-│   ├── User.js               # Mongoose User schema with bcrypt
-│   └── Track.js              # Mongoose Track schema with search index
-├── routes/
-│   ├── authRoutes.js         # Routes for /api/auth
-│   └── trackRoutes.js        # Routes for /api/tracks
-├── .env                      # Active environment variables
-├── .env.example              # Template environment variables
-├── server.js                 # Express server entry point & CORS
-└── package.json              # Dependencies and scripts
+MONGO_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/college_admin
 ```
+
+---
+
+## API reference
+
+Base URL: `http://localhost:5000` — protected routes expect
+`Authorization: Bearer <token>`.
+
+### Health / meta
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| GET | `/health` | — | Uptime ping used to verify the API is live |
+| GET | `/api` | — | Endpoint index |
+
+### Authentication
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/login` | — | Sign in. Optional `portal: "admin" \| "student"` enforces the correct portal (403 on mismatch) |
+| POST | `/api/auth/register` | — | Create an administrator account |
+| POST | `/api/auth/register/student` | — | Student self-registration (creates the admission record + login in one step) |
+| GET | `/api/auth/me` | Any | Current user profile |
+| PUT | `/api/auth/me` | Any | Update own name/email |
+| PUT | `/api/auth/password` | Any | Change own password |
+
+### Administrator portal (role: admin)
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/dashboard` | Counters + department distribution + latest notices |
+| GET / POST | `/api/students` | List / create students |
+| GET / PUT / PATCH / DELETE | `/api/students/:id` | Read / update / delete one student |
+| GET / POST | `/api/courses` | List / create courses |
+| GET / PUT / PATCH / DELETE | `/api/courses/:id` | Read / update / delete one course |
+| GET / POST | `/api/faculty` | List / create faculty |
+| GET / PUT / PATCH / DELETE | `/api/faculty/:id` | Read / update / delete one faculty member |
+| GET / POST | `/api/notices` | List / create notices |
+| GET / PUT / PATCH / DELETE | `/api/notices/:id` | Read / update / delete one notice |
+
+### Student portal (role: student)
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/student/dashboard` | Own stats, current-semester courses, latest notices |
+| GET | `/api/student/courses` | Courses for the student's department/semester |
+| GET | `/api/student/notices` | Published notices for students |
+| GET | `/api/student/profile` | Own admission record |
+| PUT | `/api/student/profile` | Update own phone / address (nothing else) |
+
+---
+
+## Folder structure
+
+```
+server/
+├── src/
+│   ├── config/        # env defaults, MongoDB connection
+│   ├── controllers/   # request handlers (admin + student portal)
+│   ├── middleware/    # JWT auth, role guard, error handling
+│   ├── models/        # Mongoose schemas: User, Student, Course, Faculty, Notice
+│   ├── routes/        # /api route table with role gating
+│   ├── scripts/       # db:check utility
+│   ├── seed/          # demo data + auto-seed on first run
+│   ├── utils/         # token helpers, async wrapper, constants
+│   └── index.js       # Express app, CORS, boot sequence
+├── .env.example
+└── package.json
+```
+
+**Security model:** JWT bearer tokens; passwords hashed with bcrypt; every
+admin route is behind `protect + requireRole('admin')`; the student router
+applies `protect + requireRole('student')` to all of its routes; login rejects
+a token request when the chosen portal does not match the account role.
+
+---
+
+## Troubleshooting
+
+**`Failed to start the server — MongoDB could not be reached`**
+MongoDB isn't running. Start it (Windows: `Services` → *MongoDB Server*), or
+set `MONGO_URI` in `server/.env` to an Atlas connection string.
+
+**`EADDRINUSE: address already in use :::5000`**
+Another process is using port 5000. Either stop it or set `PORT=5001` in
+`server/.env` and update the Vite proxy target
+(`API_PROXY_TARGET=http://localhost:5001`).
+
+**Frontend shows "Cannot reach the server"**
+The API is not running, or it is on a different port than the Vite proxy
+expects. Start `npm start` in `server/` first.
+
+**`npm run db:check` says the database is empty**
+Run `npm run seed` (or just restart the API — it seeds automatically).
+
+---
+
+## Accessing from another laptop
+
+Same Wi-Fi, no deployment needed:
+
+1. Start the API (`npm start`) and Vite with network access
+   (`npm run dev:host` from `client/`).
+2. Allow port 5173 through the firewall.
+3. On the other machine open `http://<your-lan-ip>:5173`.
+
+CORS already trusts localhost and private LAN addresses during development, so
+no config change is required.

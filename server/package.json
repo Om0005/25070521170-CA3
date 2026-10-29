@@ -1,31 +1,39 @@
 {
-  "name": "ca03-server",
+  "name": "college-admin-server",
   "version": "1.0.0",
-  "description": "CA-03 Full Stack Web Development Backend with Node.js, Express, MongoDB Atlas and JWT Authentication",
-  "main": "server.js",
+  "private": true,
+  "description": "REST API for the College Administration Portal (CA3 - Full Stack Web Development)",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "seed": "node controllers/seed.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed": "node src/seed/seed.js",
+    "seed:fresh": "node src/seed/seed.js --fresh",
+    "db:check": "node src/scripts/dbCheck.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
-    "nodejs",
     "express",
-    "mongodb-atlas",
+    "mongodb",
+    "mongoose",
     "jwt",
-    "crud"
+    "college",
+    "admin"
   ],
-  "author": "Ritik Mahakalkar - PRN: 25070521060",
-  "license": "ISC",
+  "author": "",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.2"
+    "mongoose": "^8.5.1",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.4"
   }
 }
